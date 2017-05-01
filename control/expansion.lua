@@ -17,12 +17,16 @@ local onConfigurationChanged = function()
 end
 
 local getTreeData = function(name)
+  assert(name, "name not given")
   return remote.call("tree-growth-core", "getTreeData", name)
 end
 
 local getOffspring = function(name)
   if not global.offspringData[name] then
-    global.offspringData[name] = getTreeData(name).saplings
+    local data = getTreeData(name)
+    if data then
+      global.offspringData[name] = data.saplings
+    end
   end
   return global.offspringData[name]
 end
