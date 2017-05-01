@@ -28,11 +28,30 @@ end
 
 local getOffspring = function(name)
   if not global.offspringData[name] then
-    global.offspringData[name] = getTreeData(name).sapling
+    global.offspringData[name] = getTreeData(name).saplings
   end
   return global.offspringData[name]
 end
 
+
+local pickRandomTree = function(nextTrees)
+  local sum = 0
+  local lastEntry
+  for _, entry in ipairs(nextTrees) do
+    sum = sum + entry.probability
+    lastEntry = entry
+  end
+  local r = math.random() * sum
+  local offset = 0
+  for _, entry in ipairs(nextTrees) do
+    offset = offset + entry.probability
+    if r < offset then
+      return entry
+    end
+  end
+  -- should not happen.
+  return lastEntry
+end
 local tryToSpawnTreeNearTree = function(oldTree, saplingName)
   local surface = oldTree.surface
   local oldPosition = oldTree.position
@@ -82,10 +101,13 @@ local spawnTreesInChunk = function(surface, chunkPos)
   local trees = surface.find_entities_filtered{area = area, type = "tree"}
   for k, tree in pairs(trees) do
     local treeName = tree.name
-    local saplingName = getOffspring(treeName)
-    if saplingName then
-      if math.random() < spawnProbability then
-        spawnTreeNearTree(tree, saplingName)
+    local saplingEntries = getOffspring(treeName)
+    if saplingEntries and #saplingEntries > 0 then
+        local saplingEntry = pickRandomTree(saplingEntries)
+      if saplingEntry then
+        if math.random() < spawnProbability then
+          spawnTreeNearTree(tree, saplingEntry.name)
+        end
       end
     end
   end
