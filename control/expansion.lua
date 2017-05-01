@@ -79,7 +79,7 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingName)
     --surface.print("span tree of type " .. saplingName .. " near x=" .. newPosition.x .. " y=" .. newPosition.y)  
     local newTree = surface.create_entity(newTreeArg)
     --remote.call("tree-growth", "onTreePlaced", newTree)
-    game.raise_event(defines.events.on_built_entity, {name = "on_created_entity", tick=game.tick, created_entity = newTree})
+    script.raise_event(defines.events.on_built_entity, {name = "on_created_entity", tick=game.tick, created_entity = newTree})
     return true
   end
   return false
