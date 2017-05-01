@@ -1,0 +1,38 @@
+data:extend({
+  {
+    name = "tgne-process-every-tick",
+    type = "int-setting",
+    setting_type = "runtime-global",
+    default_value = 2160,
+    minimum_value = 60,
+    maximum_value = 2160,
+    order = "a",
+  },
+  {
+    name = "tgne-expansion-probability",
+    type = "double-setting",
+    setting_type = "runtime-global",
+    default_value = 0.01,
+    minimum_value = 0.001,
+    maximum_value = 1.0,
+    order = "b",
+  },
+  {
+    name = "tgne-distance-players",
+    type = "double-setting",
+    setting_type = "runtime-global",
+    default_value = 2,
+    minimum_value = 0,
+    maximum_value = 5,
+    order = "c",
+  },
+  {
+    name = "tgne-distance-trees",
+    type = "double-setting",
+    setting_type = "runtime-global",
+    default_value = 0.5,
+    minimum_value = 0.5,
+    maximum_value = 5,
+    order = "d",
+  },
+})

@@ -6,12 +6,6 @@ require "stdlib/area/tile"
 -- TODO get mature group from tree-growth
 local tree_growth = { groups = { mature = "tree-growth-mature" } }
 
-local processChunkEveryTick = 120
-local spawnProbability = 1
-local spawnRadius = 3
-local minDistanceToTrees = 1
-local minDistanceToPlayer = 2
-
 local initialize = function()
   global.lastTreeInChunk = global.lastTreeInChunk or {}
   global.offspringData = global.offspringData or {}
@@ -52,18 +46,23 @@ local pickRandomTree = function(nextTrees)
   -- should not happen.
   return lastEntry
 end
+
 local tryToSpawnTreeNearTree = function(oldTree, saplingName)
   local surface = oldTree.surface
   local oldPosition = oldTree.position
   --surface.print("span tree of type " .. oldTree.name .. " near x=" .. oldPosition.x .. " y=" .. oldPosition.y)
   -- TODO: use something with a larger collision box to make sure trees are not too close
   --local newPosition = surface.find_non_colliding_position(saplingName, oldPosition, spawnRadius, 1)
+  local distanceToTrees = settings.global['tgne-distance-trees'].value
+  local spawnRadius = distanceToTrees + 3
   local newPosition = Position.offset(oldPosition, math.random(-spawnRadius, spawnRadius), math.random(-spawnRadius, spawnRadius))  
-  local treeArea = Position.expand_to_area(newPosition, minDistanceToTrees)
-  local playerArea = Position.expand_to_area(newPosition, minDistanceToPlayer)
-  if surface.count_entities_filtered({area=treeArea, type="tree"}) > 0 then
-    return false
+  if distanceToTrees > 0 then
+    local treeArea = Position.expand_to_area(newPosition, 2 * distanceToTrees)  
+    if surface.count_entities_filtered({area=treeArea, type="tree"}) > 0 then
+      return false
+    end
   end
+  local playerArea = Position.expand_to_area(newPosition, 2 * settings.global['tgne-distance-players'].value)
   if surface.count_entities_filtered({area=playerArea}) - surface.count_entities_filtered({area=playerArea, force="neutral"}) > 0 then
     return false
   end
@@ -95,6 +94,7 @@ local spawnTreeNearTree = function(oldTree, saplingName)
 end
 
 local spawnTreesInChunk = function(surface, chunkPos)
+  local spawnProbability = settings.global['tgne-expansion-probability'].value
   -- find existing trees
   -- surface.print("looking at chunk x=" .. chunkPos.x .. " y=" .. chunkPos.y)
   local area = Chunk.to_area(chunkPos)
@@ -114,6 +114,7 @@ local spawnTreesInChunk = function(surface, chunkPos)
 end
 
 local onTick = function()
+  local processChunkEveryTick = settings.global['tgne-process-every-tick'].value
   local surface = game.surfaces["nauvis"]
   for chunkIndex, chunkPos in mod.relevantChunkIterator(surface) do
     if (not global.lastTreeInChunk[chunkIndex]) or (global.lastTreeInChunk[chunkIndex] + processChunkEveryTick < game.tick) then
