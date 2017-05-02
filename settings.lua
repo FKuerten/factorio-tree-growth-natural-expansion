@@ -39,9 +39,9 @@ data:extend({
     name = "tgne-wind-factor",
     type = "double-setting",
     setting_type = "runtime-global",
-    default_value = 10,
+    default_value = 100,
     minimum_value = 0,
-    maximum_value = 50,
+    maximum_value = 200,
     order = "e",
   },
 })

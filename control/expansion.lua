@@ -69,8 +69,8 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingName)
   -- surface.wind_orientation == 0 => north
   -- surface.wind_orientation == 0.25 => east
   local windOrientation = surface.wind_orientation * 2 * math.pi
-  local windX = math.sin(windOrientation) * windRadius * 10
-  local windY = -math.cos(windOrientation) * windRadius * 10
+  local windX = math.sin(windOrientation) * windRadius
+  local windY = -math.cos(windOrientation) * windRadius
   newPosition = Position.offset(newPosition, windX, windY)
   --surface.print(surface.wind_orientation .. " " .. windX .. " " .. windY)
   
