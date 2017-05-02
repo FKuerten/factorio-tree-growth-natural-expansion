@@ -59,7 +59,21 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingName)
   --local newPosition = surface.find_non_colliding_position(saplingName, oldPosition, spawnRadius, 1)
   local distanceToTrees = settings.global['tgne-distance-trees'].value
   local spawnRadius = distanceToTrees + 3
-  local newPosition = Position.offset(oldPosition, math.random(-spawnRadius, spawnRadius), math.random(-spawnRadius, spawnRadius))  
+  local newPosition = oldPosition
+  
+  -- random offset
+  local newPosition = Position.offset(newPosition, math.random(-spawnRadius, spawnRadius), math.random(-spawnRadius, spawnRadius))
+  
+  -- wind 
+  local windRadius = surface.wind_speed * settings.global['tgne-wind-factor'].value
+  -- surface.wind_orientation == 0 => north
+  -- surface.wind_orientation == 0.25 => east
+  local windOrientation = surface.wind_orientation * 2 * math.pi
+  local windX = math.sin(windOrientation) * windRadius * 10
+  local windY = -math.cos(windOrientation) * windRadius * 10
+  newPosition = Position.offset(newPosition, windX, windY)
+  --surface.print(surface.wind_orientation .. " " .. windX .. " " .. windY)
+  
   if distanceToTrees > 0 then
     local treeArea = Position.expand_to_area(newPosition, 2 * distanceToTrees)  
     if surface.count_entities_filtered({area=treeArea, type="tree"}) > 0 then
