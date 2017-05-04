@@ -58,7 +58,7 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingName)
   -- TODO: use something with a larger collision box to make sure trees are not too close
   --local newPosition = surface.find_non_colliding_position(saplingName, oldPosition, spawnRadius, 1)
   local distanceToTrees = settings.global['tgne-distance-trees'].value
-  local spawnRadius = distanceToTrees + 3
+  local spawnRadius = distanceToTrees + 5
   local newPosition = oldPosition
   
   -- random offset
