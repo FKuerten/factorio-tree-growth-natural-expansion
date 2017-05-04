@@ -82,7 +82,9 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingName)
       return false
     end
   end
-  local playerArea = Position.expand_to_area(newPosition, 2 * settings.global['tgne-distance-players'].value)
+  
+  local playerCenter = Position.offset(newPosition, 0, -0.5)
+  local playerArea = Position.expand_to_area(playerCenter, 2 * settings.global['tgne-distance-players'].value)
   if surface.count_entities_filtered({area=playerArea}) - surface.count_entities_filtered({area=playerArea, force="neutral"}) > 0 then
     return false
   end
