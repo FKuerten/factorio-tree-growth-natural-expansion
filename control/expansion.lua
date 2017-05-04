@@ -62,7 +62,9 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingName)
   local newPosition = oldPosition
   
   -- random offset
-  local newPosition = Position.offset(newPosition, math.random(-spawnRadius, spawnRadius), math.random(-spawnRadius, spawnRadius))
+  local randomX = math.random(-spawnRadius, spawnRadius)
+  local randomY = math.random(-spawnRadius, spawnRadius)
+  local newPosition = Position.offset(newPosition, randomX, randomY)
   
   -- wind 
   local windRadius = surface.wind_speed * settings.global['tgne-wind-factor'].value
