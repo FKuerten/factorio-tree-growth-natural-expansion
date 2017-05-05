@@ -51,7 +51,7 @@ local pickRandomTree = function(nextTrees)
   return lastEntry
 end
 
-local tryToSpawnTreeNearTree = function(oldTree, saplingName)
+local tryToSpawnTreeNearTree = function(oldTree, saplingEntries)
   local surface = oldTree.surface
   local oldPosition = oldTree.position
   --surface.print("span tree of type " .. oldTree.name .. " near x=" .. oldPosition.x .. " y=" .. oldPosition.y)
@@ -88,6 +88,10 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingName)
   if surface.count_entities_filtered({area=playerArea}) - surface.count_entities_filtered({area=playerArea, force="neutral"}) > 0 then
     return false
   end
+
+  local saplingEntry = pickRandomTree(saplingEntries)
+  if not saplingEntry then return false end
+
   local tile = surface.get_tile(Tile.from_position(newPosition))
   local speed = tile.prototype.walking_speed_modifier
   --surface.print("tile: " .. tile.name .. " speed: " .. speed)
@@ -95,6 +99,7 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingName)
     return false
   end
   
+  local saplingName = saplingEntry.name
   local newTreeArg = {name=saplingName, position=newPosition, force=oldTree.force}
   if surface.can_place_entity(newTreeArg) then        
     --surface.print("span tree of type " .. saplingName .. " near x=" .. newPosition.x .. " y=" .. newPosition.y)  
@@ -106,30 +111,30 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingName)
   return false
 end
 
-local spawnTreeNearTree = function(oldTree, saplingName)
+local spawnTreeNearTree = function(oldTree, saplingEntries)
   for i = 0, 10 do
-    local success = tryToSpawnTreeNearTree(oldTree, saplingName)
+    local success = tryToSpawnTreeNearTree(oldTree, saplingEntries)
     if success then 
       return 
     end
   end
 end
 
+-- Allows trees in a given chunk to reproduce an spawn new trees, not necessarily in the same chunk.
+-- Whether trees are really spawned depends on the spawnProbaility and whether there is space.
+-- @param surface the surface of the chunk
+-- @param chunkPos the position of the chunk
 local spawnTreesInChunk = function(surface, chunkPos)
   local spawnProbability = settings.global['tgne-expansion-probability'].value
-  -- find existing trees
-  -- surface.print("looking at chunk x=" .. chunkPos.x .. " y=" .. chunkPos.y)
   local area = Chunk.to_area(chunkPos)
   local trees = surface.find_entities_filtered{area = area, type = "tree"}
-  for k, tree in pairs(trees) do
-    local treeName = tree.name
-    local saplingEntries = getOffspring(treeName)
-    if saplingEntries and #saplingEntries > 0 then
-        local saplingEntry = pickRandomTree(saplingEntries)
-      if saplingEntry then
-        if math.random() < spawnProbability then
-          spawnTreeNearTree(tree, saplingEntry.name)
-        end
+  for k, treeEntity in pairs(trees) do
+    local treeName = treeEntity.name
+    if math.random() < spawnProbability then
+      local saplingEntries = getOffspring(treeName)
+      -- Can this tree even reproduce?
+      if saplingEntries and #saplingEntries > 0 then
+        spawnTreeNearTree(treeEntity, saplingEntries)
       end
     end
   end
