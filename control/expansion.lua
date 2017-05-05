@@ -7,7 +7,7 @@ require "stdlib/area/tile"
 local tree_growth = { groups = { mature = "tree-growth-mature" } }
 
 local initialize = function()
-  global.lastTreeInChunk = global.lastTreeInChunk or {}
+  global.lastUpdateForChunk = global.lastUpdateForChunk or {}
   global.offspringData = global.offspringData or {}
 end
 
@@ -139,9 +139,9 @@ local onTick = function()
   local processChunkEveryTick = settings.global['tgne-process-every-tick'].value
   local surface = game.surfaces["nauvis"]
   for chunkIndex, chunkPos in mod.relevantChunkIterator(surface) do
-    if (not global.lastTreeInChunk[chunkIndex]) or (global.lastTreeInChunk[chunkIndex] + processChunkEveryTick < game.tick) then
+    if (not global.lastUpdateForChunk[chunkIndex]) or (global.lastUpdateForChunk[chunkIndex] + processChunkEveryTick < game.tick) then
       spawnTreesInChunk(surface, chunkPos)
-      global.lastTreeInChunk[chunkIndex] = game.tick
+      global.lastUpdateForChunk[chunkIndex] = game.tick
       return
     end
   end
