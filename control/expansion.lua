@@ -55,8 +55,6 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingEntries)
   local surface = oldTree.surface
   local oldPosition = oldTree.position
   --surface.print("span tree of type " .. oldTree.name .. " near x=" .. oldPosition.x .. " y=" .. oldPosition.y)
-  -- TODO: use something with a larger collision box to make sure trees are not too close
-  --local newPosition = surface.find_non_colliding_position(saplingName, oldPosition, spawnRadius, 1)
   local distanceToTrees = settings.global['tgne-distance-trees'].value
   local spawnRadius = distanceToTrees + 5
   local newPosition = oldPosition
