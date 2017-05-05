@@ -86,11 +86,14 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingEntries)
   if surface.count_entities_filtered({area=playerArea}) - surface.count_entities_filtered({area=playerArea, force="neutral"}) > 0 then
     return false
   end
+  
+  local tile = surface.get_tile(Tile.from_position(newPosition))
 
+  -- TODO tile filtering
   local saplingEntry = pickRandomTree(saplingEntries)
   if not saplingEntry then return false end
 
-  local tile = surface.get_tile(Tile.from_position(newPosition))
+
   local speed = tile.prototype.walking_speed_modifier
   --surface.print("tile: " .. tile.name .. " speed: " .. speed)
   if speed > 1 then
