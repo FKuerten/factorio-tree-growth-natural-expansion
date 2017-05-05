@@ -1,8 +1,6 @@
 require "stdlib/area/chunk"
 require "stdlib/area/area"
 
-local MAX_RELEVANCE = 2
-
 local initialize = function()
   global.indexToPos = global.indexToPos or {}
   global.chunksToScan = global.chunksToScan or {}
@@ -41,7 +39,7 @@ local onTick = function(tick)
   
   global.indexToPos[index] = chunkPos
   if populated then
-    global.chunkRelevance[index] = MAX_RELEVANCE
+    global.chunkRelevance[index] = settings.global['tgne-chunk-distance'].value
   else
     local top    = {x=chunkPos.x  , y=chunkPos.y-1}
     local bottom = {x=chunkPos.x  , y=chunkPos.y+1}

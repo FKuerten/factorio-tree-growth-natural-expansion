@@ -44,4 +44,13 @@ data:extend({
     maximum_value = 200,
     order = "e",
   },
+  {
+    name = "tgne-chunk-distance",
+    type = "int-setting",
+    setting_type = "runtime-global",
+    default_value = 3,
+    minimum_value = 1,
+    maximum_value = 10,
+    order = "f",
+  },
 })
