@@ -25,5 +25,3 @@ do
 end
 script.on_init(initialize)
 script.on_load(initialize)
-script.on_event(defines.events.on_built_entity, onEntityPlaced)
-script.on_event(defines.events.on_robot_built_entity, onEntityPlaced)
