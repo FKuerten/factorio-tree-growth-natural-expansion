@@ -9,10 +9,18 @@ local tree_growth = { groups = { mature = "tree-growth-mature" } }
 local initialize = function()
   global.lastUpdateForChunk = global.lastUpdateForChunk or {}
   global.offspringData = global.offspringData or {}
+  if not global.treePlantedEvent then
+    global.treePlantedEvent = remote.call("tree-growth-core", "getEvents")['on_tree_planted']
+    script.on_event(global.treePlantedEvent, onEntityPlaced)
+  end
 end
 
 local onConfigurationChanged = function()
   global.offspringData = nil
+  if global.treePlantedEvent then
+    script.on_event(global.treePlantedEvent, nil)
+    global.treePlantedEvent = nil
+  end
   initialize()
 end
 
@@ -124,7 +132,7 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingEntries)
     --surface.print("span tree of type " .. saplingName .. " near x=" .. newPosition.x .. " y=" .. newPosition.y)  
     local newTree = surface.create_entity(newTreeArg)
     --remote.call("tree-growth", "onTreePlaced", newTree)
-    script.raise_event(defines.events.on_built_entity, {name = "on_created_entity", tick=game.tick, created_entity = newTree})
+    script.raise_event(global.treePlantedEvent, {created_entity = newTree})
     return true
   end
   return false
