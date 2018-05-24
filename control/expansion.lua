@@ -146,11 +146,11 @@ local spawnTreeNearTree = function(oldTree, saplingEntries)
   end
 end
 
--- Allows trees in a given chunk to reproduce an spawn new trees, not necessarily in the same chunk.
+-- Allows trees in a given chunk to reproduce and spawn new trees, not necessarily in the same chunk.
 -- Whether trees are really spawned depends on the spawnProbaility and whether there is space.
 -- @param surface the surface of the chunk
 -- @param chunkPos the position of the chunk
-local spawnTreesInChunk = function(surface, chunkPos)
+local processTreesInChunk = function(surface, chunkPos)
   local spawnProbability = settings.global['tgne-expansion-probability'].value
   local area = Chunk.to_area(chunkPos)
   local trees = surface.find_entities_filtered{area = area, type = "tree"}
@@ -171,7 +171,7 @@ local onTick = function()
   local surface = game.surfaces["nauvis"]
   for chunkIndex, chunkPos in mod.relevantChunkIterator(surface) do
     if (not global.lastUpdateForChunk[chunkIndex]) or (global.lastUpdateForChunk[chunkIndex] + processChunkEveryTick < game.tick) then
-      spawnTreesInChunk(surface, chunkPos)
+      processTreesInChunk(surface, chunkPos)
       global.lastUpdateForChunk[chunkIndex] = game.tick
       return
     end
