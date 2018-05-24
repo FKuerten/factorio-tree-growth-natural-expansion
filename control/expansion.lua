@@ -40,7 +40,6 @@ local getOffspring = function(name)
   return global.offspringData[name]
 end
 
--- TOD0 currently dead code, need to add logic for filtering
 local filterTrees = function(nextTrees, tileName)
   local result = {}
   for _, entry in ipairs(nextTrees) do
@@ -115,7 +114,6 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingEntries)
   
   local tile = surface.get_tile(Tile.from_position(newPosition))
 
-  -- TODO tile filtering
   local filteredEntries = filterTrees(saplingEntries, tile.name)
   local saplingEntry = pickRandomTree(filteredEntries)
   if not saplingEntry then return false end
