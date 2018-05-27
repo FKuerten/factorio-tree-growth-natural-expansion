@@ -1,6 +1,7 @@
 mod = {
   onTick = {},
-  onInit = {}
+  onInit = {},
+  onLoad = {},
 }
 require "control/chunks"
 require "control/expansion"
@@ -10,6 +11,12 @@ local round = function(x) return math.floor(x+0.5) end
 local initialize = function()
   for _, init in pairs(mod.onInit) do
     init()
+  end
+end
+
+local loadMod = function()
+  for _, l in pairs(mod.onLoad) do
+    l()
   end
 end
 
@@ -24,4 +31,4 @@ do
   script.on_event(defines.events.on_tick, onTick)
 end
 script.on_init(initialize)
-script.on_load(initialize)
+script.on_load(loadMod)
