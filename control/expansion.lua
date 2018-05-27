@@ -10,6 +10,9 @@ local treePlantedEvent
 local initialize = function()
   global.lastUpdateForChunk = global.lastUpdateForChunk or {}
   global.offspringData = global.offspringData or {}
+  if not global.groups then
+    global.groups = remote.call("tree-growth-core", "getGroups")
+  end
   if not treePlantedEvent then
     treePlantedEvent = remote.call("tree-growth-core", "getEvents")['on_tree_planted']
     script.on_event(treePlantedEvent, onEntityPlaced)
@@ -18,6 +21,7 @@ end
 
 local onConfigurationChanged = function()
   global.offspringData = nil
+  global.groups = nil
   if treePlantedEvent then
     script.on_event(treePlantedEvent, nil)
     treePlantedEvent = nil
@@ -146,6 +150,86 @@ local spawnTreeNearTree = function(oldTree, saplingEntries)
   end
 end
 
+local maybeDeconstructTree = function(treeEntity)
+  local matureDistance = settings.global['tgne-distance-deconstruct-mature-players'].value
+  local growingDistance = settings.global['tgne-distance-deconstruct-growing-players'].value
+  local prototype = treeEntity.prototype
+  local relevantDistance
+  --local treeData = getTreeData(treeEntity.name)
+  if prototype.subgroup.name == global.groups.sapling or
+     prototype.subgroup.name == global.groups.intermediate then
+    relevantDistance = growingDistance
+  elseif prototype.subgroup.name == global.groups.mature then
+    relevantDistance = matureDistance
+  else
+    return
+  end
+    
+  -- if there is something near the tree, deconstruct the tree
+  local treeCenter = treeEntity.position
+  local adjustedPosition = Position.offset(treeCenter, 0, -0.5)
+  local area = Position.expand_to_area(adjustedPosition, 2 * relevantDistance)
+  local surface = treeEntity.surface
+  local types = {
+    "accumulator",
+    "ammo-turret",
+    "artillery-turret",
+    "assembling-machine",
+    "beacon",
+    "boiler",
+    "container",
+    "curved-rail",
+    "decider-combinator",
+    "electric-pole",
+    "electric-turret",
+    "fluid-turret",
+    "furnace",
+    "gate",
+    "generator",
+    "heat-pipe",
+    "infinity-container",
+    "inserter",
+    -- "item-entity", -- debatable
+    "lab",
+    "lamp",
+    "land-mine", -- debatable
+    "loader",
+    "logistic-container",
+    "market",
+    "mining-drill",
+    "offshore-pump",
+    "pipe",
+    "pipe-to-ground",
+    "power-switch",
+    "programmable-speaker",
+    "pump",
+    "radar",
+    "rail-chain-signal",
+    "rail-signal",
+    "reactor",
+    "roboport",
+    "rocket-silo",
+    "solar-panel",
+    "splitter",
+    "storage-tank",
+    "straight-rail",
+    "train-stop",
+    "transport-belt",
+    "turret", -- these are alien turrets by default
+    "underground-belt",
+    "unit-spawner",
+    "wall",
+  }
+  for _, force in pairs(game.forces) do
+    if #(force.players) > 0 then
+      if surface.count_entities_filtered({area=area, force=force, type=types}) > 0 then
+        -- deconstruct
+        treeEntity.order_deconstruction(force)
+      end
+    end
+  end
+end
+
 -- Allows trees in a given chunk to reproduce and spawn new trees, not necessarily in the same chunk.
 -- Whether trees are really spawned depends on the spawnProbaility and whether there is space.
 -- @param surface the surface of the chunk
@@ -155,6 +239,8 @@ local processTreesInChunk = function(surface, chunkPos)
   local area = Chunk.to_area(chunkPos)
   local trees = surface.find_entities_filtered{area = area, type = "tree"}
   for k, treeEntity in pairs(trees) do
+    maybeDeconstructTree(treeEntity)
+    
     local treeName = treeEntity.name
     if math.random() < spawnProbability then
       local saplingEntries = getOffspring(treeName)
