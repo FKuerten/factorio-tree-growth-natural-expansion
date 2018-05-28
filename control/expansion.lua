@@ -13,6 +13,12 @@ local initialize = function()
   if not global.groups then
     global.groups = remote.call("tree-growth-core", "getGroups")
   end
+end
+
+local onLoad = function()
+  if treePlantedEvent then
+    script.on_event(treePlantedEvent, nil)
+  end
   if not treePlantedEvent then
     treePlantedEvent = remote.call("tree-growth-core", "getEvents")['on_tree_planted']
     script.on_event(treePlantedEvent, onEntityPlaced)
@@ -22,10 +28,6 @@ end
 local onConfigurationChanged = function()
   global.offspringData = nil
   global.groups = nil
-  if treePlantedEvent then
-    script.on_event(treePlantedEvent, nil)
-    treePlantedEvent = nil
-  end
   initialize()
 end
 
@@ -267,3 +269,4 @@ end
 script.on_configuration_changed(onConfigurationChanged)
 table.insert(mod.onTick, onTick)
 table.insert(mod.onInit, initialize)
+table.insert(mod.onLoad, onLoad)
