@@ -261,7 +261,6 @@ local onTick = function()
     if (not global.lastUpdateForChunk[chunkIndex]) or (global.lastUpdateForChunk[chunkIndex] + processChunkEveryTick < game.tick) then
       processTreesInChunk(surface, chunkPos)
       global.lastUpdateForChunk[chunkIndex] = game.tick
-      return
     end
   end
 end

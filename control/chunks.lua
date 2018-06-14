@@ -15,10 +15,15 @@ end
 
 local onTick = function(tick)
   local surface = game.surfaces["nauvis"]
+
+  -- Empty set of chunks to scan?
   if not global.chunksToScan or not next(global.chunksToScan) then
+    local count = 0
     for chunkPos in surface.get_chunks() do
       global.chunksToScan[Chunk.get_index(surface, chunkPos)] = chunkPos
+      count = count + 1
     end
+    --surface.print("reloaded chunk set: " .. tostring(count) .. " chunks")
     return
   end
   
