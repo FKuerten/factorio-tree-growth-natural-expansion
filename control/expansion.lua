@@ -9,6 +9,7 @@ local tree_growth = { groups = { mature = "tree-growth-mature" } }
 local treePlantedEvent
 local initialize = function()
   global.lastUpdateForChunk = global.lastUpdateForChunk or {}
+  global.chunkSlowdownFactor = global.chunkSlowdownFactor or {}
   global.offspringData = global.offspringData or {}
   if not global.groups then
     global.groups = remote.call("tree-growth-core", "getGroups")
@@ -143,14 +144,14 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingEntries)
   return false
 end
 
-local spawnTreeNearTree = function(oldTree, saplingEntries)
-  for i = 0, 10 do
-    local success = tryToSpawnTreeNearTree(oldTree, saplingEntries)
-    if success then 
-      return 
-    end
-  end
-end
+-- local spawnTreeNearTree = function(oldTree, saplingEntries)
+  -- for i = 0, 10 do
+    -- local success = tryToSpawnTreeNearTree(oldTree, saplingEntries)
+    -- if success then
+      -- return
+    -- end
+  -- end
+-- end
 
 local maybeDeconstructTree = function(treeEntity)
   local matureDistance = settings.global['tgne-distance-deconstruct-mature-players'].value
@@ -232,35 +233,79 @@ local maybeDeconstructTree = function(treeEntity)
   end
 end
 
+local randomElementFromArray = function(array)
+  local count = #array
+  local index = math.random(count)
+  return index, array[index]
+end
+
 -- Allows trees in a given chunk to reproduce and spawn new trees, not necessarily in the same chunk.
 -- Whether trees are really spawned depends on the spawnProbaility and whether there is space.
 -- @param surface the surface of the chunk
 -- @param chunkPos the position of the chunk
-local processTreesInChunk = function(surface, chunkPos)
-  local spawnProbability = settings.global['tgne-expansion-probability'].value
+-- @param timeSinceLastProcessing number of ticks since last update
+local processTreesInChunk = function(surface, chunkPos, timeSinceLastProcessing)
+  local meanTimeForTreeToExpand = settings.global['tgne-expansion-mean-time'].value
   local area = Chunk.to_area(chunkPos)
   local trees = surface.find_entities_filtered{area = area, type = "tree"}
-  for k, treeEntity in pairs(trees) do
-    maybeDeconstructTree(treeEntity)
+
+  local changed = false
+  -- Before spawning, remove all trees that are too close to a player structure
+  for _, treeEntity in ipairs(trees) do
+    local deconstructed = maybeDeconstructTree(treeEntity)
+    if deconstructed then
+      changed = true
+    end
+  end
+
+   -- Compute how many trees should spawn
+  local numberOfSpawns = #trees * timeSinceLastProcessing / meanTimeForTreeToExpand
+
+  local failures = 0
+  while (numberOfSpawns > 0) and (#trees > 0) and (failures < 5) do
+    -- pick random tree
+    local i, oldTree = randomElementFromArray(trees)
     
-    local treeName = treeEntity.name
-    if math.random() < spawnProbability then
-      local saplingEntries = getOffspring(treeName)
-      -- Can this tree even reproduce?
-      if saplingEntries and #saplingEntries > 0 then
-        spawnTreeNearTree(treeEntity, saplingEntries)
+    -- check if tree can reproduce
+    local saplingEntries = getOffspring(oldTree.name)
+    if not saplingEntries or #saplingEntries <= 0 then
+      table.remove(trees, i)
+    else
+      -- try to spawn
+      local success = tryToSpawnTreeNearTree(oldTree, saplingEntries)
+      if success then
+        numberOfSpawns = numberOfSpawns - 1
+        failures = 0
+        changed = true
+      else
+        failures = failures + 1
       end
     end
   end
+
+  return changed
 end
 
 local onTick = function()
   local processChunkEveryTick = settings.global['tgne-process-every-tick'].value
   local surface = game.surfaces["nauvis"]
   for chunkIndex, chunkPos in mod.relevantChunkIterator(surface) do
-    if (not global.lastUpdateForChunk[chunkIndex]) or (global.lastUpdateForChunk[chunkIndex] + processChunkEveryTick < game.tick) then
-      processTreesInChunk(surface, chunkPos)
+    if not global.lastUpdateForChunk[chunkIndex] then
       global.lastUpdateForChunk[chunkIndex] = game.tick
+    elseif not global.chunkSlowdownFactor[chunkIndex] then
+      global.chunkSlowdownFactor[chunkIndex] = 1
+    else
+      local timeSinceLastProcessing = game.tick - global.lastUpdateForChunk[chunkIndex]
+      local adjustedTimeSinceLastProcessing = timeSinceLastProcessing * global.chunkSlowdownFactor[chunkIndex]
+      if adjustedTimeSinceLastProcessing > processChunkEveryTick then
+        local changed = processTreesInChunk(surface, chunkPos, adjustedTimeSinceLastProcessing)
+        global.lastUpdateForChunk[chunkIndex] = game.tick
+        if changed then
+          global.chunkSlowdownFactor[chunkIndex] = 1
+        else
+          global.chunkSlowdownFactor[chunkIndex] = 0.5
+        end
+      end
     end
   end
 end
