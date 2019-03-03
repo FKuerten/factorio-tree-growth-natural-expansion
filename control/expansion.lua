@@ -7,6 +7,7 @@ require "stdlib/area/tile"
 local tree_growth = { groups = { mature = "tree-growth-mature" } }
 
 local treePlantedEvent
+local onLoad
 local initialize = function()
   global.lastUpdateForChunk = global.lastUpdateForChunk or {}
   global.chunkSlowdownFactor = global.chunkSlowdownFactor or {}
@@ -14,14 +15,16 @@ local initialize = function()
   if not global.groups then
     global.groups = remote.call("tree-growth-core", "getGroups")
   end
+  onLoad()
 end
 
-local onLoad = function()
+onLoad = function()
   if treePlantedEvent then
     script.on_event(treePlantedEvent, nil)
   end
   if not treePlantedEvent then
     treePlantedEvent = remote.call("tree-growth-core", "getEvents")['on_tree_planted']
+    assert(treePlantedEvent, "event is nil")
     script.on_event(treePlantedEvent, onEntityPlaced)
   end
 end
@@ -138,6 +141,7 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingEntries)
     --surface.print("span tree of type " .. saplingName .. " near x=" .. newPosition.x .. " y=" .. newPosition.y)  
     local newTree = surface.create_entity(newTreeArg)
     --remote.call("tree-growth", "onTreePlaced", newTree)
+    assert(treePlantedEvent, "event not set")
     script.raise_event(treePlantedEvent, {created_entity = newTree})
     return true
   end
