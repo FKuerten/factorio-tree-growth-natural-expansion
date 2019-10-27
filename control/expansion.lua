@@ -123,6 +123,11 @@ local tryToSpawnTreeNearTree = function(oldTree, saplingEntries)
   end
   
   local tile = surface.get_tile(Tile.from_position(newPosition))
+  if not tile.valid then
+    -- Don't spawn on invalid tiles.
+    --game.print("invalid")
+    return false
+  end
 
   local filteredEntries = filterTrees(saplingEntries, tile.name)
   local saplingEntry = pickRandomTree(filteredEntries)
